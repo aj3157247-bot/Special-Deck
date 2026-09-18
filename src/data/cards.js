@@ -1,27 +1,10 @@
-import { fallbackCards } from './fallbackCards';
-
-export const REMOTE_CARDS_URL = 'https://raw.githubusercontent.com/RoyaleAPI/cr-api-data/master/docs/json/cards.json';
-
-function normalize(raw) {
-  const rows = Array.isArray(raw) ? raw : Object.values(raw || {});
-  return rows
-    .map(c => ({
-      ...c,
-      id: Number(c.id),
-      elixir: Number(c.elixir ?? c.cost ?? 0),
-      arena: Number(c.arena ?? 0),
-      rarity: c.rarity || 'Common',
-      type: c.type || 'Troop'
-    }))
-    .filter(c => c.id && c.name && Number.isFinite(c.elixir));
-}
-
-export async function loadCards() {
-  try {
-    const r = await fetch(REMOTE_CARDS_URL, { cache: 'no-store' });
-    if (!r.ok) throw new Error('remote cards unavailable');
-    const cards = normalize(await r.json());
-    if (cards.length > 20) return cards;
-  } catch (_) {}
-  return fallbackCards;
-}
+const names = [
+['Knight','Common','Troop',3],['Archers','Common','Troop',3],['Goblins','Common','Troop',2],['Spear Goblins','Common','Troop',2],['Giant','Rare','Troop',5],['P.E.K.K.A','Epic','Troop',7],['Minions','Common','Troop',3],['Balloon','Epic','Troop',5],['Witch','Epic','Troop',5],['Barbarians','Common','Troop',5],['Golem','Epic','Troop',8],['Skeletons','Common','Troop',1],['Valkyrie','Rare','Troop',4],['Musketeer','Rare','Troop',4],['Baby Dragon','Epic','Troop',4],['Prince','Epic','Troop',5],['Wizard','Rare','Troop',5],['Mini P.E.K.K.A','Rare','Troop',4],['Bomber','Common','Troop',2],['Spear Goblins','Common','Troop',2],['Giant Skeleton','Epic','Troop',6],['Hog Rider','Rare','Troop',4],['Minion Horde','Common','Troop',5],['Ice Wizard','Legendary','Troop',3],['Royal Giant','Common','Troop',6],['Guards','Epic','Troop',3],['Princess','Legendary','Troop',3],['Dark Prince','Epic','Troop',4],['Three Musketeers','Rare','Troop',9],['Lava Hound','Legendary','Troop',7],['Miner','Legendary','Troop',3],['Sparky','Legendary','Troop',6],['Electro Wizard','Legendary','Troop',4],['Elite Barbarians','Common','Troop',6],['Inferno Dragon','Legendary','Troop',4],['Battle Ram','Rare','Troop',4],['Mega Knight','Legendary','Troop',7],['Skeleton Barrel','Common','Troop',3],['Flying Machine','Rare','Troop',4],['Royal Recruits','Common','Troop',7],['Zappies','Rare','Troop',4],['Royal Hogs','Rare','Troop',5],['Rascals','Common','Troop',5],['Cannon Cart','Epic','Troop',5],['Mega Minion','Rare','Troop',3],['Hunter','Epic','Troop',4],['Executioner','Epic','Troop',5],['Bandit','Legendary','Troop',3],['Night Witch','Legendary','Troop',4],['Bats','Common','Troop',2],['Ram Rider','Legendary','Troop',5],['Magic Archer','Legendary','Troop',4],['Mother Witch','Legendary','Troop',4],['Fisherman','Legendary','Troop',3],['Electro Dragon','Epic','Troop',5],['Battle Healer','Rare','Troop',4],['Elixir Golem','Rare','Troop',3],['Skeleton Dragons','Common','Troop',4],['Firecracker','Common','Troop',3],['Goblin Giant','Epic','Troop',6],['Electro Giant','Epic','Troop',7],['Phoenix','Legendary','Troop',4],['Monk','Champion','Troop',5],['Skeleton King','Champion','Troop',4],['Archer Queen','Champion','Troop',5],['Golden Knight','Champion','Troop',4],['Mighty Miner','Champion','Troop',4],['Little Prince','Champion','Troop',3],['Goblinstein','Champion','Troop',5],['Rune Giant','Epic','Troop',4],['Ronin','Legendary','Troop',5],['Minion Giant','Epic','Troop',6],['Ice Wizard','Legendary','Troop',3],
+['Fireball','Rare','Spell',4],['Arrows','Common','Spell',3],['Zap','Common','Spell',2],['Rocket','Rare','Spell',6],['The Log','Legendary','Spell',2],['Poison','Epic','Spell',4],['Lightning','Epic','Spell',6],['Freeze','Epic','Spell',4],['Tornado','Epic','Spell',3],['Rage','Epic','Spell',2],['Giant Snowball','Common','Spell',2],['Earthquake','Rare','Spell',3],['Barbarian Barrel','Epic','Spell',2],['Goblin Barrel','Epic','Spell',3],['Graveyard','Legendary','Spell',5],['Mirror','Epic','Spell',1],['Clone','Epic','Spell',3],['Void','Epic','Spell',3],['Vines','Epic','Spell',3],
+['Cannon','Common','Building',3],['Tesla','Common','Building',4],['Bomb Tower','Rare','Building',4],['Inferno Tower','Rare','Building',5],['Goblin Cage','Rare','Building',4],['Tombstone','Rare','Building',3],['Furnace','Rare','Building',4],['Goblin Hut','Rare','Building',4],['Barbarian Hut','Rare','Building',6],['Mortar','Common','Building',4],['X-Bow','Epic','Building',6],['Elixir Collector','Rare','Building',6],
+['Hero Knight','Champion','Hero',3],['Hero Balloon','Epic','Hero',5],['Hero Goblins','Common','Hero',3],['Hero Magic Archer','Legendary','Hero',4],['Hero Tombstone','Rare','Hero',4],['Hero Ice Wizard','Legendary','Hero',4],['Hero Berserker','Champion','Hero',4],['Hero Dark Prince','Epic','Hero',4],['Hero Bowler','Epic','Hero',5]
+];
+const evoNames=new Set(['Knight','Archers','Barbarians','Skeletons','Bomber','Firecracker','Royal Giant','Mortar','Tesla','P.E.K.K.A','Mega Knight','Valkyrie','Baby Dragon','Goblin Cage','Battle Ram','Lumberjack','Executioner','Dart Goblin','Wizard','Royal Recruits','Elite Barbarians','Inferno Dragon','Lumberjack']);
+export const cards = names.map(([name,rarity,type,elixir],i)=>({id:i+1,name,rarity,type,elixir,maxLevel:16,evolution:evoNames.has(name),hero:type==='Hero',champion:rarity==='Champion'}));
+export async function loadCards(){return cards}
+export default cards;
