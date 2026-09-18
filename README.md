@@ -1,32 +1,23 @@
-# Special Deck v2
+# Special Deck V3
 
-A fan-made Clash Royale deck builder focused on maxed-card collections.
+Web-only Clash Royale deck builder. No APK build is required.
 
 ## Features
-- MAX/owned card collection saved in browser localStorage
+- Card database with rarities, elixir, type, evolution/hero flags
+- My Collection / MAX marking (Level 16)
+- 5 deck styles: Balanced, Cycle, Control, Beatdown, Bridge Spam
 - 8-card deck builder
-- Balanced, Cycle, Control, Beatdown and Bridge Spam generation modes
-- Role-aware deck scoring
-- Attack / Defense / Air Defense / Cycle analysis
-- Save and reload decks locally
-- Copy Deck link and Clash Royale deep-link opening
-- Responsive React/Vite frontend
-- Express backend with health and deck-link API
-- GitHub Actions build artifact
+- Deck analysis and average elixir
+- Save decks in browser localStorage
+- Copy Deck deep-link and Open Clash Royale
+- Responsive mobile/desktop UI
+- Express API: `/api/health`, `/api/cards`, `/api/cards/:id`
 
 ## Run
-```bash
-npm install
-npm run dev
-```
+`npm install`
+`npm run dev`
 
-Production:
-```bash
-npm run build
-npm start
-```
+For server mode:
+`npm start`
 
-## Important
-Clash Royale deep links and card IDs are controlled by the game. The project uses the documented `clashroyale-inbox://copyDeck?deck=...` format for Copy Deck and should be rechecked after major game updates.
-
-The remote community card-data URL is used when available; the included fallback dataset keeps the site functional if that URL is unavailable.
+This is a fan-made web project and is not affiliated with Supercell.
