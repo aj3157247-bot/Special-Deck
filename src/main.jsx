@@ -20,7 +20,7 @@ function App(){
  const filtered=useMemo(()=>cards.filter(c=>(rarity==='All'||c.rarity===rarity)&&c.name.toLowerCase().includes(query.toLowerCase())),[cards,rarity,query]);
  const stats=analyze(deck),ai=analyzeDeckAI(deck),weaknesses=findDeckWeaknesses(deck),matchups=analyzeMatchups(deck,opponent),replacements=suggestReplacements(deck,cards,owned,style);
  const avg=deck.length?(deck.reduce((s,c)=>s+c.elixir,0)/deck.length).toFixed(1):'0.0';
- const toggle=id=>setOwned(o=>({...o,[id]:{...(o[id]||{}),max:!o[id]?.max,level:!o[id]?.max?16:(o[id]?.level||1)}});
+ const toggle=id=>setOwned(o=>({...o,[id]:{...(o[id]||{}),max:!o[id]?.max,level:!o[id]?.max?16:(o[id]?.level||1)}}));
  const add=c=>{if(deck.length>=8)return setNotice('دک کامل است.');if(deck.some(x=>x.id===c.id))return setNotice('این کارت داخل دک است.');setDeck(d=>[...d,c])};
  const gen=()=>{setDeck(generateDeckAI(cards,owned,style));setNotice(Object.values(owned).filter(x=>x.max).length>=8?'دک از کارت‌های MAX شما ساخته شد.':'برای شخصی‌سازی دقیق، حداقل ۸ کارت را MAX کنید.')};
  const copy=async()=>{if(deck.length!==8)return setNotice('ابتدا ۸ کارت انتخاب کن.');const l=link(deck);if(!l)return setNotice('یکی از کارت‌های این دک ID رسمی Clash Royale ندارد.');try{await navigator.clipboard.writeText(l);setNotice('لینک Deck کپی شد.')}catch{setNotice(l)}};
