@@ -1,1 +1,10 @@
-
+import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
+const __dirname=path.dirname(fileURLToPath(import.meta.url));
+const app=express();
+app.use(express.json());
+app.get('/api/health',(_,res)=>res.json({ok:true,app:'Special Deck',version:'1.0.0'}));
+app.get('/api/decklink',(req,res)=>{const ids=String(req.query.cards||'').split(',').map(Number).filter(Boolean).slice(0,8);if(ids.length!==8)return res.status(400).json({error:'Exactly 8 valid card ids are required.'});res.json({url:`https://link.clashroyale.com/en/?clashroyale://copyDeck?deck=${ids.join(';')}`,inboxUrl:`clashroyale-inbox://copyDeck?deck=${ids.join(';')}`,ids});});
+const dist=path.resolve(__dirname,'..','dist');app.use(express.static(dist));app.get('*splat',(_,res)=>res.sendFile(path.join(dist,'index.html')));
+const port=process.env.PORT||3000;app.listen(port,()=>console.log(`Special Deck running on ${port}`));
