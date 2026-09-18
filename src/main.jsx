@@ -57,11 +57,22 @@ const role=c=>
         :'Support');
 
 /*
- * Standard Clash Royale web deck link.
- * This replaces the old clashroyale-inbox:// link.
+ * Clash Royale deck link.
+ *
+ * IMPORTANT:
+ * `id` is Special Deck's internal ID.
+ * `clashRoyaleId` is the ID used by Clash Royale.
  */
-const link=deck=>
-  `https://link.clashroyale.com/deck/en?deck=${deck.map(c=>c.id).join(';')}`;
+const link=deck=>{
+  const ids=deck
+    .map(c=>c.clashRoyaleId)
+    .filter(Boolean);
+
+  if(ids.length!==8)
+    return null;
+
+  return `https://link.clashroyale.com/deck/en?deck=${ids.join(';')}`;
+};
 
 const initials=n=>
   n.split(/\s+/).map(x=>x[0]).slice(0,2).join('');
@@ -313,6 +324,12 @@ function App(){
 
     const l=link(deck);
 
+    if(!l){
+      return setNotice(
+        'یکی از کارت‌های این دک ID رسمی Clash Royale ندارد.'
+      );
+    }
+
     try{
       await navigator.clipboard.writeText(l);
 
@@ -332,6 +349,12 @@ function App(){
       return setNotice('دک باید ۸ کارت داشته باشد.');
 
     const l=link(deck);
+
+    if(!l){
+      return setNotice(
+        'یکی از کارت‌های این دک ID رسمی Clash Royale ندارد.'
+      );
+    }
 
     window.location.href=l;
   };
