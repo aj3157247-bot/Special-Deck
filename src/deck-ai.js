@@ -69,6 +69,68 @@ export function generateDeckAI(cards,owned,style='Balanced'){
   }
   return (beam[0]||[]).slice(0,8);
 }
+
+function seededRandom(seed){
+  const x=Math.sin(seed*12.9898+78.233)*43758.5453;
+  return x-Math.floor(x);
+}
+function variantKey(deck){return deck.map(c=>c.id).sort((a,b)=>a-b).join(',')}
+function overlap(a,b){
+  const A=new Set(a.map(c=>c.id)), B=new Set(b.map(c=>c.id));
+  let n=0; for(const id of A)if(B.has(id))n++;
+  return n/8;
+}
+
+/**
+ * Build a large, deterministic pool of distinct 8-card candidates from every
+ * MAX/high-level card in the user's collection. The page UI can expose this
+ * pool 10 at a time without ever asking the user to hand-pick only 8 cards.
+ */
+export function generateDeckVariants(cards,owned,style='Balanced',count=10,offset=0){
+  const max=cards.filter(c=>owned?.[c.id]?.max||owned?.[c.id]?.level===16);
+  if(max.length<8)return [];
+  const pool=max.slice().sort((a,b)=>baseScore(b,style,owned)-baseScore(a,style,owned));
+  const target=Math.min(300,Math.max(count,offset+count));
+  const candidates=[];
+  const seen=new Set();
+
+  for(let attempt=0;attempt<target*80 && candidates.length<target*3;attempt++){
+    const seed=attempt+1+offset*9973;
+    const deck=[];
+    const available=pool.slice();
+    while(deck.length<8&&available.length){
+      const scored=available.map((c,index)=>{
+        const synergy=deck.reduce((v,x)=>v+pairScore(c,x),0);
+        const roleInfo=role(c);
+        const roleBonus=
+          (roleInfo.win&&!deck.some(x=>role(x).win)?28:0)+
+          (roleInfo.air&&deck.filter(x=>role(x).air).length<2?12:0)+
+          (roleInfo.spell&&deck.filter(x=>role(x).spell).length<2?10:0)+
+          (roleInfo.building&&!deck.some(x=>role(x).building)?12:0)+
+          (roleInfo.cheap&&deck.filter(x=>role(x).cheap).length<3?7:0);
+        const jitter=(seededRandom(seed*(index+3)+deck.length*31)-0.5)*18;
+        return {c,s:baseScore(c,style,owned)+synergy+roleBonus+jitter};
+      }).sort((a,b)=>b.s-a.s);
+      const pick=Math.min(scored.length-1,Math.floor(seededRandom(seed*17+deck.length*13)*Math.min(5,scored.length)));
+      deck.push(scored[pick].c);
+      available.splice(available.findIndex(x=>x.id===scored[pick].c.id),1);
+    }
+    if(deck.length!==8)continue;
+    const key=variantKey(deck);
+    if(seen.has(key))continue;
+    seen.add(key);
+    candidates.push({deck,score:Math.round(deckScore(deck,style,owned)*10)/10});
+  }
+
+  candidates.sort((a,b)=>b.score-a.score);
+  const diverse=[];
+  for(const item of candidates){
+    if(diverse.every(x=>overlap(x.deck,item.deck)<0.875))diverse.push(item);
+    if(diverse.length>=Math.min(300,candidates.length))break;
+  }
+  return diverse.slice(offset,offset+count);
+}
+
 export function analyzeDeckAI(deck){
   if(!deck.length)return {synergy:0,coverage:0,balance:0,score:0};
   const roles=deck.map(role); const win=roles.filter(r=>r.win).length, air=roles.filter(r=>r.air).length, buildings=roles.filter(r=>r.building).length, spells=roles.filter(r=>r.spell).length;
