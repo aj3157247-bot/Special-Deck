@@ -1,19 +1,20 @@
-# Special Deck
+# Special Deck v2
 
-A complete fan-made Clash Royale deck builder built with React + Vite + Express.
+A fan-made Clash Royale deck builder focused on maxed-card collections.
 
 ## Features
+- MAX/owned card collection saved in browser localStorage
 - 8-card deck builder
-- Max/owned card marking
-- Smart deck generation by playstyle
-- Average elixir and role analysis
-- Card search and rarity filters
-- Copy Deck / Open Clash Royale deep-link support
-- Responsive mobile/desktop UI
-- Remote card constants with local fallback
-- Express server ready for Render
+- Balanced, Cycle, Control, Beatdown and Bridge Spam generation modes
+- Role-aware deck scoring
+- Attack / Defense / Air Defense / Cycle analysis
+- Save and reload decks locally
+- Copy Deck link and Clash Royale deep-link opening
+- Responsive React/Vite frontend
+- Express backend with health and deck-link API
+- GitHub Actions build artifact
 
-## Run locally
+## Run
 ```bash
 npm install
 npm run dev
@@ -21,14 +22,11 @@ npm run dev
 
 Production:
 ```bash
-npm install
 npm run build
 npm start
 ```
 
-## Render
-- Build command: `npm install && npm run build`
-- Start command: `npm start`
+## Important
+Clash Royale deep links and card IDs are controlled by the game. The project uses the documented `clashroyale-inbox://copyDeck?deck=...` format for Copy Deck and should be rechecked after major game updates.
 
-The site is an independent fan project and is not affiliated with Supercell.
-The card constants fallback is based on community-maintained Clash Royale data. For current production data, replace the remote source in `src/data/cards.js` with your licensed/approved data source or your own backend.
+The remote community card-data URL is used when available; the included fallback dataset keeps the site functional if that URL is unavailable.
