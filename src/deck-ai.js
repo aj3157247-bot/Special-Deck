@@ -78,3 +78,66 @@ export function analyzeDeckAI(deck){
   const balance=Math.max(0,100-Math.abs(avg-3.7)*22-Math.max(0,spells-3)*8-Math.max(0,1-win)*35);
   return {synergy:Math.min(100,Math.round(50+synergy*2)),coverage:Math.round(coverage),balance:Math.round(balance),score:Math.round((Math.min(100,50+synergy*2)+coverage+balance)/3)};
 }
+
+
+const COUNTERS = {
+  'Hog Rider':['Cannon','Tesla','Bomb Tower','Tornado','Goblin Cage'],
+  'Royal Hogs':['Bomb Tower','Valkyrie','Bowler','Fireball','The Log'],
+  'Balloon':['Musketeer','Hunter','Tesla','Inferno Tower','Firecracker'],
+  'Giant':['Inferno Tower','P.E.K.K.A','Mini P.E.K.K.A','Cannon'],
+  'Golem':['Inferno Tower','P.E.K.K.A','Mini P.E.K.K.A','Inferno Dragon'],
+  'Electro Giant':['Cannon','Tesla','Inferno Tower','P.E.K.K.A'],
+  'Mega Knight':['P.E.K.K.A','Inferno Tower','Knight','Valkyrie'],
+  'Goblin Barrel':['The Log','Arrows','Barbarian Barrel','Zap'],
+  'Graveyard':['Poison','Valkyrie','Baby Dragon','Tornado'],
+  'Lava Hound':['Musketeer','Hunter','Inferno Dragon','Tesla','Firecracker'],
+  'X-Bow':['Tesla','Rocket','Lightning','P.E.K.K.A'],
+  'Mortar':['Cannon','Tesla','Knight','Valkyrie'],
+  'Wall Breakers':['Valkyrie','Bomb Tower','The Log','Barbarian Barrel'],
+  'Ram Rider':['Cannon','Tesla','P.E.K.K.A','Tornado'],
+  'Royal Giant':['Tesla','Cannon','Inferno Tower','Fisherman'],
+  'Minion Giant':['Hunter','Inferno Tower','P.E.K.K.A','Tesla'],
+  'Goblin Giant':['Mini P.E.K.K.A','P.E.K.K.A','Inferno Tower','Cannon'],
+  'Bridge Spam':['P.E.K.K.A','Valkyrie','Bomb Tower']
+};
+
+export function analyzeMatchups(deck=[], opponent=[]){
+  const enemyNames=new Set(opponent.map(c=>c.name));
+  const threats=deck.filter(c=>COUNTERS[c.name]);
+  const countered=opponent.filter(c=>COUNTERS[c.name]);
+  let coverage=0, gaps=[];
+  for(const enemy of countered){
+    const list=COUNTERS[enemy.name]||[];
+    const found=deck.filter(c=>list.includes(c.name)).length;
+    coverage += found ? 1 : 0;
+    if(!found) gaps.push(enemy.name);
+  }
+  const score=countered.length?Math.round(100*coverage/countered.length):50;
+  const suggested=opponent.flatMap(c=>COUNTERS[c.name]||[]).filter((n,i,a)=>a.indexOf(n)===i)
+    .filter(n=>!enemyNames.has(n)).map(name=>deck.find(c=>c.name===name)||{name});
+  return {score, gaps, suggested, threats: threats.map(c=>c.name)};
+}
+
+export function findDeckWeaknesses(deck=[]){
+  const r=deck.map(role), avg=deck.length?deck.reduce((s,c)=>s+c.elixir,0)/deck.length:0;
+  const weaknesses=[];
+  if(!r.some(x=>x.win)) weaknesses.push({key:'win',title:'No Win Condition',detail:'Add a reliable way to damage the enemy tower.'});
+  if(r.filter(x=>x.air).length<2) weaknesses.push({key:'air',title:'Light Air Defense',detail:'Add another reliable anti-air card.'});
+  if(r.filter(x=>x.building).length===0) weaknesses.push({key:'building',title:'No Defensive Building',detail:'Consider a building or a strong defensive unit.'});
+  if(r.filter(x=>x.spell).length<2) weaknesses.push({key:'spell',title:'Low Spell Coverage',detail:'Two spells often give broader utility across matchups.'});
+  if(avg>4.6) weaknesses.push({key:'elixir',title:'Heavy Elixir',detail:`Average elixir is ${avg.toFixed(1)}; consider a cheaper cycle/support card.`});
+  if(avg<2.7) weaknesses.push({key:'light',title:'Very Fast Cycle',detail:`Average elixir is ${avg.toFixed(1)}; make sure the deck has enough stopping power.`});
+  if(r.filter(x=>x.win).length>2) weaknesses.push({key:'wins',title:'Too Many Win Conditions',detail:'Trim redundant win conditions for stronger role coverage.'});
+  return weaknesses;
+}
+
+export function suggestReplacements(deck,cards,owned,style='Balanced'){
+  const weak=findDeckWeaknesses(deck); if(!weak.length)return [];
+  const candidates=(cards||[]).filter(c=>!deck.some(d=>d.id===c.id));
+  const available=candidates.filter(c=>owned?.[c.id]?.max||owned?.[c.id]?.level===16);
+  const pool=(available.length>=5?available:candidates).sort((a,b)=>baseScore(b,style,owned)-baseScore(a,style,owned));
+  return weak.slice(0,4).map(w=>{
+    const scored=pool.map(c=>({c,s:baseScore(c,style,owned)+(w.key==='air'&&role(c).air?25:0)+(w.key==='building'&&role(c).building?25:0)+(w.key==='spell'&&role(c).spell?18:0)+(w.key==='win'&&role(c).win?30:0)-(w.key==='elixir'&&c.elixir>3?10:0)})).sort((a,b)=>b.s-a.s)[0];
+    return scored?{weakness:w,replacement:scored.c}:null;
+  }).filter(Boolean);
+}
