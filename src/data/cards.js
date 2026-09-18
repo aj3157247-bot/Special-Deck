@@ -8,10 +8,12 @@ const clashRoyaleIds={"Knight":26000000,"Archers":26000001,"Goblins":26000002,"S
 
 const evoNames=new Set(['Knight','Archers','Barbarians','Skeletons','Bomber','Firecracker','Royal Giant','Mortar','Tesla','P.E.K.K.A','Mega Knight','Valkyrie','Baby Dragon','Goblin Cage','Battle Ram','Lumberjack','Executioner','Dart Goblin','Wizard','Royal Recruits','Elite Barbarians','Inferno Dragon','Lumberjack']);
 
+const cardKey=name=>name.replace(/^Hero /,'').replace(/\./g,'').replace(/\s+/g,'-').toLowerCase();
 export const cards=names.map(([name,rarity,type,elixir],i)=>({
  id:i+1,name,rarity,type,elixir,maxLevel:16,
  evolution:evoNames.has(name),hero:type==='Hero',champion:rarity==='Champion',
- clashRoyaleId:clashRoyaleIds[name]??null
+ clashRoyaleId:clashRoyaleIds[name]??null,
+ imageKey:cardKey(name)
 }));
 
 export async function loadCards(){return cards}
